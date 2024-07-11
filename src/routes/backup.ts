@@ -5,6 +5,7 @@ import fs from 'fs';
 import path from 'path';
 import * as tar from 'tar';
 
+import {gzip} from 'node-gzip';
 interface BackupRequestBody {
   containerName: string;
   rootPassword: string;
@@ -123,10 +124,13 @@ router.post('/backup', async (req: Request, res: Response) => {
     await testDatabaseConnection(container, rootPassword);
     const backupFileName = `backup_${Date.now()}.sql`;
     await performBackup(container, rootPassword, databaseName, backupFileName);
-    res.download(backupFileName, (err) => {
-      if (err) console.error(`Download error: ${err}`);
-      fs.unlinkSync(backupFileName);
-    });
+    const file = fs.readFileSync(backupFileName);
+    const compressedFile = await gzip(file);
+  
+    res.setHeader('Content-Type', 'application/gzip');
+    res.setHeader('Content-Disposition', `attachment; filename=${backupFileName}`);
+    res.send(compressedFile);
+    fs.unlinkSync(backupFileName);
   } catch (error) {
     console.error(`Backup error: ${error}`);
     return res.status(500).json({ error: ERROR_MESSAGES.BACKUP_FAILED });
