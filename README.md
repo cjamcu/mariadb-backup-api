@@ -4,7 +4,7 @@ This API allows performing backup and restore operations for MariaDB databases i
 
 ## Requirements
 - Docker
-- Docker Compose (optional, depending on the development environment)
+- Docker Compose
 
 
 ## Installation
