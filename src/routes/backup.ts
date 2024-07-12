@@ -100,8 +100,8 @@ async function handleFileUpload(container: Container, file: Express.Multer.File,
     });
   });
 
-  const command = `mariadb -u root -p${rootPassword} ${databaseName} < ${containerFilePath}`;
-  const commandIfGzip = `gunzip -c ${containerFilePath} | mariadb -u root -p${rootPassword} ${databaseName}`;
+  const command = `mariadb --binary-mode -u root -p${rootPassword} ${databaseName} < ${containerFilePath}`;
+ const commandIfGzip = `gunzip -c ${containerFilePath} | mariadb --binary-mode -u root -p${rootPassword} ${databaseName}`;
 
   const restoreExec = await container.exec({
     Cmd: ['bash', '-c', file.mimetype === 'application/gzip' ? commandIfGzip : command],
