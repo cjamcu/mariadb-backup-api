@@ -2,14 +2,13 @@ FROM node:18.12-alpine
 
 WORKDIR /usr/src/app
 
-COPY package*.json pnpm-lock.yaml ./
-RUN npm install -g pnpm
+COPY package*.json  ./
 
-RUN pnpm install --frozen-lockfile
+RUN npm install 
 
 COPY . .
 
-RUN pnpm run build
+RUN npm run build
 
 
 EXPOSE 3000
