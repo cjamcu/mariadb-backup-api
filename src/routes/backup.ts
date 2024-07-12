@@ -51,7 +51,7 @@ async function testDatabaseConnection(container: Container, rootPassword: string
     });
 
     testStream.on('end', () => {
-      successConnection ? resolve(true) : reject(new Error(ERROR_MESSAGES.DB_CONNECTION_FAILED));
+      resolve(successConnection);
     });
   });
 }
@@ -138,8 +138,12 @@ router.post('/backup', async (req: Request, res: Response) => {
 
 
   const container = docker.getContainer(containerName);
+  const successConnection = await testDatabaseConnection(container, rootPassword);
+  if (!successConnection) {
+    return res.status(500).json({ error: ERROR_MESSAGES.DB_CONNECTION_FAILED });
+  }
   try {
-    await testDatabaseConnection(container, rootPassword);
+   
     const backupFileName = `backup_${Date.now()}.sql`;
     await performBackup(container, rootPassword, databaseName, backupFileName);
     const file = fs.readFileSync(backupFileName);
@@ -169,8 +173,12 @@ router.post('/restore', upload.single('file'), async (req: Request, res: Respons
   }
 
   const container = docker.getContainer(containerName);
+  const successConnection = await testDatabaseConnection(container, rootPassword);
+  if (!successConnection) {
+    return res.status(500).json({ error: ERROR_MESSAGES.DB_CONNECTION_FAILED });
+  }
   try {
-    await testDatabaseConnection(container, rootPassword);
+   
     await handleFileUpload(container, file, rootPassword, databaseName);
     res.json({ message: 'Restore successful' });
   } catch (error) {
