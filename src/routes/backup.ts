@@ -101,7 +101,7 @@ async function handleFileUpload(container: Container, file: Express.Multer.File,
   });
 
   const command = `mariadb --binary-mode -u root -p${rootPassword} ${databaseName} < ${containerFilePath}`;
- const commandIfGzip = `gunzip -c ${containerFilePath} | mariadb --binary-mode -u root -p${rootPassword} ${databaseName}`;
+  const commandIfGzip = `gunzip -c ${containerFilePath} | mariadb --binary-mode -u root -p${rootPassword} ${databaseName}`;
 
   const restoreExec = await container.exec({
     Cmd: ['bash', '-c', file.mimetype === 'application/gzip' ? commandIfGzip : command],
@@ -143,7 +143,6 @@ router.post('/backup', async (req: Request, res: Response) => {
     return res.status(500).json({ error: ERROR_MESSAGES.DB_CONNECTION_FAILED });
   }
   try {
-   
     const backupFileName = `backup_${Date.now()}.sql`;
     await performBackup(container, rootPassword, databaseName, backupFileName);
     const file = fs.readFileSync(backupFileName);
@@ -178,7 +177,6 @@ router.post('/restore', upload.single('file'), async (req: Request, res: Respons
     return res.status(500).json({ error: ERROR_MESSAGES.DB_CONNECTION_FAILED });
   }
   try {
-   
     await handleFileUpload(container, file, rootPassword, databaseName);
     res.json({ message: 'Restore successful' });
   } catch (error) {
