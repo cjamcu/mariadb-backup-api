@@ -126,11 +126,10 @@ router.post('/backup', async (req: Request, res: Response) => {
     await performBackup(container, rootPassword, databaseName, backupFileName);
     const file = fs.readFileSync(backupFileName);
     const compressedFile = await gzip(file);
-  
     res.setHeader('Content-Type', 'application/gzip');
-    res.setHeader('Content-Disposition', `attachment; filename=${backupFileName}`);
+    res.setHeader('Content-Disposition', `attachment; filename=${backupFileName}.gz`);
     res.send(compressedFile);
-    fs.unlinkSync(backupFileName);
+    fs.unlinkSync(backupFileName); 
   } catch (error) {
     console.error(`Backup error: ${error}`);
     return res.status(500).json({ error: ERROR_MESSAGES.BACKUP_FAILED });
@@ -155,5 +154,13 @@ router.post('/restore', upload.single('file'), async (req: Request, res: Respons
     return res.status(500).json({ error: ERROR_MESSAGES.RESTORE_FAILED });
   }
 });
+
+
+router.post('/clone', async (req: Request, res: Response) => {
+  return res.status(200).json({ error: 'Not implemented' });
+
+});
+
+
 
 export default router;
