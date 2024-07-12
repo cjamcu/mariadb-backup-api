@@ -23,6 +23,17 @@ const ERROR_MESSAGES = {
   RESTORE_FAILED: 'Restore failed',
 };
 
+async function isContainerRunning(containerName: string): Promise<boolean> {
+  try {
+    const container = docker.getContainer(containerName);
+    const info = await container.inspect();
+    return info.State.Running;
+  } catch (error) {
+    console.error(`Error checking container status: ${error}`);
+    return false;
+  }
+}
+
 async function testDatabaseConnection(container: Container, rootPassword: string): Promise<boolean> {
   const testExec = await container.exec({
     Cmd: ['mariadb', '-u', 'root', `-p${rootPassword}`, '-e', 'SELECT 1'],
@@ -119,6 +130,13 @@ router.post('/backup', async (req: Request, res: Response) => {
     return res.status(400).json({ error: ERROR_MESSAGES.REQUIRED_FIELDS });
   }
 
+  const isRunning = await isContainerRunning(containerName);
+
+  if (!isRunning) {
+    return res.status(400).json({ error: 'Container is not running' });
+  }
+
+
   const container = docker.getContainer(containerName);
   try {
     await testDatabaseConnection(container, rootPassword);
@@ -142,6 +160,12 @@ router.post('/restore', upload.single('file'), async (req: Request, res: Respons
 
   if (!containerName || !rootPassword || !databaseName || !file) {
     return res.status(400).json({ error: ERROR_MESSAGES.REQUIRED_FIELDS });
+  }
+
+  const isRunning = await isContainerRunning(containerName);
+
+  if (!isRunning) {
+    return res.status(400).json({ error: 'Container is not running' });
   }
 
   const container = docker.getContainer(containerName);
