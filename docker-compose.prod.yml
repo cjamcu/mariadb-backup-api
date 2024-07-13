@@ -15,3 +15,8 @@ services:
       - "traefik.http.routers.api.tls.certresolver=letsencrypt"
       - "traefik.http.routers.api.tls=true"
       - "traefik.http.services.api.loadbalancer.server.port=3000"
+networks:
+  traefik-network:
+    external: true
+ 
+
