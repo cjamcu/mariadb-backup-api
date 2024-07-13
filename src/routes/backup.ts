@@ -65,15 +65,15 @@ async function performBackup(container: Container, rootPassword: string, databas
 
   const stream = await exec.start({});
   const backupFile = fs.createWriteStream(backupFileName);
-
+  container.modem.demuxStream(stream, backupFile, process.stderr);
   return new Promise((resolve, reject) => {
-    stream.on('data', (chunk: Buffer) => backupFile.write(chunk));
     stream.on('end', () => {
-      backupFile.end();
       resolve();
     });
     stream.on('error', reject);
+
   });
+
 }
 
 async function handleFileUpload(container: Container, file: Express.Multer.File, rootPassword: string, databaseName: string): Promise<void> {
@@ -100,8 +100,8 @@ async function handleFileUpload(container: Container, file: Express.Multer.File,
     });
   });
 
-  const command = `mariadb --binary-mode -u root -p${rootPassword} ${databaseName} < ${containerFilePath}`;
-  const commandIfGzip = `gunzip -c ${containerFilePath} | mariadb --binary-mode -u root -p${rootPassword} ${databaseName}`;
+  const command = `mariadb  -u root -p${rootPassword} ${databaseName} < ${containerFilePath}`;
+  const commandIfGzip = `gunzip -c ${containerFilePath} | mariadb  -u root -p${rootPassword} ${databaseName}`;
 
   const restoreExec = await container.exec({
     Cmd: ['bash', '-c', file.mimetype === 'application/gzip' ? commandIfGzip : command],
